@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreamento de Localização em Tempo Real</title>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rastreamento de Localização em Tempo Real</h1>
+
+    <button onclick="startTracking()">Iniciar Rastreamento</button>
+    <div id="map"></div>
+
+    <script>
+        // Variáveis globais
+        let map, marker, watchID;
+
+        // Função para inicializar o mapa
+        function initMap(latitude, longitude) {
+            const mapOptions = {
+                zoom: 15,
+                center: { lat: latitude, lng: longitude }
+            };
+
+            map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+            // Criar um marcador no mapa
+            marker = new google.maps.Marker({
+                position: { lat: latitude, lng: longitude },
+                map: map,
+                title: "Você está aqui!"
+            });
+        }
+
+        // Função para iniciar o rastreamento
+        function startTracking() {
+            // Verifica se a geolocalização é suportada
+            if (navigator.geolocation) {
+                // Obtém a posição inicial do usuário
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Inicializa o mapa na posição inicial
+                    initMap(latitude, longitude);
+
+                    // Inicia o rastreamento em tempo real
+                    watchID = navigator.geolocation.watchPosition(function(position) {
+                        const newLatitude = position.coords.latitude;
+                        const newLongitude = position.coords.longitude;
+
+                        // Atualiza o marcador no mapa
+                        marker.setPosition({ lat: newLatitude, lng: newLongitude });
+                        map.setCenter({ lat: newLatitude, lng: newLongitude });
+                    }, function(error) {
+                        console.log("Erro ao obter a localização: ", error);
+                    }, {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 5000
+                    });
+                }, function(error) {
+                    console.log("Erro ao obter a localização: ", error);
+                });
+            } else {
+                alert("A geolocalização não é suportada pelo seu navegador.");
+            }
+        }
+
+        // Carregar o Google Maps
+        function loadMapScript() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap`;
+            document.body.appendChild(script);
+        }
+
+        // Carregar o script do Google Maps quando o DOM estiver pronto
+        document.addEventListener("DOMContentLoaded", function() {
+            loadMapScript();
+        });
+    </script>
+</body>
+</html>
